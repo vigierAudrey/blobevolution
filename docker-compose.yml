@@ -1,0 +1,32 @@
+version: "3.8"              
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: blobinfini-db
+    env_file:
+      - ./.env
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - blobnet
+
+  auth:
+    build:
+      context: ./apps/services/auth-service
+    env_file:
+      - ./apps/services/auth-service/.env
+    ports:
+      - 4001:4000
+    depends_on:
+      - postgres-db
+    networks:
+      - blobnet
+
+volumes:
+  postgres_data:
+
+networks:
+  blobnet:
+    driver: bridge

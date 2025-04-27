@@ -1,0 +1,18 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Dossiers de dépendances
+/node_modules
+/vendor
+
+# Fichiers d'environnement
+.env
+.env.local
+
+# Fichiers de build
+/dist
+/build
+
+# Fichiers de log
+*.logpackage – Copie.json:Zone.Identifier
