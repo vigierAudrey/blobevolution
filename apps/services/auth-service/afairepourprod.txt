@@ -1,0 +1,96 @@
+Auth Service – Checklist de Production
+
+Voici une liste (à placer dans apps/services/auth-service/PRODUCTION_TODO.txt) des tâches et améliorations à prévoir avant de passer ce service en production :
+
+1. Sécurité et validation
+
+✔️ Middleware de validation des requêtes (ex. express-validator) pour garder le corps des requêtes propre :
+
+Vérifier présence et format de l’email
+
+Vérifier longueur et complexité du mot de passe
+
+Valider le rôle (enum « rider », « professional », « admin »)
+
+🔒 Protection CSRF/CORS : configurer les origines autorisées et en-têtes (CORS)
+
+🔐 Gestion des en-têtes HTTP de sécurité (Helmet)
+
+✅ Hashed secrets : s’assurer que JWT_SECRET, autres clés, ne sont jamais stockés en clair
+
+2. Authentification & Autorisation
+
+🔑 Refresh tokens pour rotation / rafraîchissement des JWT
+
+🔓 Révocation de tokens : blacklist / durée de vie courte + refresh
+
+🔒 Password reset : route et token d’oubli de mot de passe
+
+✅ Email verification : envoi de mail pour confirmer l’adresse
+
+🔐 Rate limiting sur les routes critiques (/login, /register)
+
+3. Base de données & migration
+
+🛠️ Migrations (umzug / sequelize-cli) au lieu de sync() en prod
+
+📈 Seeders pour données initiales (rôles, permissions)
+
+📊 Indexation des colonnes critiques (email unique)
+
+📜 Backups et stratégie de restauration de la base
+
+4. Monitoring & observabilité
+
+📄 Logger structuré (Winston / Pino) plutôt que console.log
+
+📊 Metrics (Prometheus / StatsD) pour latence, erreurs 5xx, volumes de requêtes
+
+📨 Alerting en cas d’erreurs répétées ou de montée en charge
+
+5. Tests & qualité
+
+✅ Tests unitaires des services et modèles (Mocha / Jest)
+
+🔄 Tests d’intégration couvrant toutes les routes POST /register, POST /login, routes protégées
+
+🧹 Linting, Prettier et CI (GitHub Actions) pour vérifier chaque PR
+
+6. Documentation & versioning
+
+📚 Swagger/OpenAPI pour décrire l’API
+
+✏️ CHANGELOG et versioning sémantique (semver)
+
+📖 README détaillé avec setup, variables d’environnement et commandes Docker
+
+7. CI/CD & déploiement
+
+🐳 Image Docker optimisée : multi-stage, taille réduite
+
+🚦 Healthcheck Docker pour valider l’état du service
+
+🔄 Pipeline CI/CD pour build, test, push de l’image, déploiement automatique
+
+Bonus :
+
+💌 Envoi de mails (nodemailer ou service tiers)
+
+🔍 Recherche et audit de sécurité (OWASP)
+
+🛡️ Mise en place d’un WAF ou proxy en amont (NGINX, Traefik)
+
+
+Rajout 30/04:
+# Auth-service → checklist production
+
+- [ ] Gestion des migrations SQL (Umzug ou Sequelize-CLI)
+- [ ] Sécuriser les headers HTTP (helmet)
+- [ ] Limiter le nombre de requêtes (express-rate-limit)
+- [ ] Centraliser la validation des inputs (Joi / Zod)
+- [ ] Logger en production (winston / pino)
+- [ ] Healthcheck / readiness probe
+- [ ] Documentation OpenAPI (Swagger)
+- [ ] Variables d’environnement bien typées et validées
+- [ ] CI/CD pipeline (build push images, migration, tests)
+ 
