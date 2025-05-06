@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: blobinfini_user
+      POSTGRES_PASSWORD: Frigtuh543
+      POSTGRES_DB: blobinfini_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  auth:
+    build:
+      context: ./apps/services/auth-service
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "postgresql://blobinfini_user:Frigtuh543@postgres-db:5432/blobinfini_dev"
+      PORT: 4000
+      NODE_ENV: production
+    ports:
+      - "4001:4000"
+    depends_on:
+      - postgres-db
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        # si tu veux passer DATABASE_URL au build (par exemple pour Prisma)
+        DATABASE_URL: "postgresql://blobinfini_user:Frigtuh543@postgres-db:5432/blobinfini_dev"
+    image: blobinfini-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      # si ton frontend appelle l’API auth
+      NEXT_PUBLIC_API_URL: http://localhost:4001
+    depends_on:
+      - auth
+      - postgres-db
+
+volumes:
+  db-data:

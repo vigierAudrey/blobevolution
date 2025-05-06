@@ -2,63 +2,75 @@ name: CI / CD
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 env:
-  IMAGE_TAG: ${{ vars.IMAGE_TAG }}       # = "latest" par défaut
-  DOCKERHUB: ${{ secrets.DOCKER_HUB_USERNAME }}
+  IMAGE_TAG: latest
+  SERVICES: auth-service,billing-service,booking-service,cms-service,location-service,messaging-service,notification-service,payment-service,profile-service,search-service,user-service
 
 jobs:
-
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service,billing-service,booking-service,cms-service,location-service,
-                  messaging-service,notification-service,payment-service,profile-service,
-                  search-service,user-service]
-    name: Build & Test ${{ matrix.service }}
+        service: [
+          "auth-service",
+          "billing-service",
+          "booking-service",
+          "cms-service",
+          "location-service",
+          "messaging-service",
+          "notification-service",
+          "payment-service",
+          "profile-service",
+          "search-service",
+          "user-service"
+        ]
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: "18"
 
-      - name: Install & compile
-        working-directory: apps/services/${{ matrix.service }}
+      - name: Install & Build ${{ matrix.service }}
+        working-directory: ./apps/services/${{ matrix.service }}
         run: |
           npm ci
           npm run build
-          npm test  # optionnel
 
-  docker:
+      - name: Test ${{ matrix.service }}
+        working-directory: ./apps/services/${{ matrix.service }}
+        run: npm test
+
+  docker-build-and-push:
     needs: build-and-test
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service,billing-service,booking-service,cms-service,location-service,
-                  messaging-service,notification-service,payment-service,profile-service,
-                  search-service,user-service]
-    name: Dockerize ${{ matrix.service }}
+        service: [
+          "auth-service",
+          "billing-service",
+          "booking-service",
+          "cms-service",
+          "location-service",
+          "messaging-service",
+          "notification-service",
+          "payment-service",
+          "profile-service",
+          "search-service",
+          "user-service"
+        ]
     steps:
       - uses: actions/checkout@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Build & Push ${{ matrix.service }}
         uses: docker/build-push-action@v4
         with:
-          context: apps/services/${{ matrix.service }}
-          file:    apps/services/${{ matrix.service }}/Dockerfile
+          context: ./apps/services/${{ matrix.service }}
+          file:    ./apps/services/${{ matrix.service }}/Dockerfile
           push:    true
-          tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
+          tags:    ${{ secrets.DOCKER_HUB_USERNAME }}/blobevolution-${{ matrix.service }}:${{ env.IMAGE_TAG }}

@@ -1,0 +1,20 @@
+# On exclut tout ce qui n'est pas nécessaire pour le build
+node_modules
+dist
+.git
+.gitignore
+Dockerfile*
+.dockerignore
+
+# Logs, caches, IDE
+*.log
+npm-debug.log*
+.vscode/
+.idea/
+.DS_Store
+
+# Fichiers secrets
+.env
+.env.local
+.env.*.local
+
