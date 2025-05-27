@@ -1,26 +1,25 @@
+import { signIn, signOut, getSession } from 'next-auth/react';
+
 export async function login(email: string, password: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_AUTH_API}/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
     });
 
-    if (!response.ok) {
-      throw new Error('Erreur lors de la connexion');
+    if (result?.error) {
+      throw new Error(result.error);
     }
 
-    const data = await response.json();
-    return data;
+    return result;
   } catch (error) {
     console.error('Login error:', error);
     throw error;
   }
 }
 
-export async function register(email: string, password: string, role: string) {
+export async function register(email: string, password: string, role: 'rider' | 'professional' | 'admin') {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_AUTH_API}/register`, {
       method: 'POST',
@@ -34,8 +33,8 @@ export async function register(email: string, password: string, role: string) {
       throw new Error('Erreur lors de l\'inscription');
     }
 
-    const data = await response.json();
-    return data;
+    // Après l'inscription réussie, connecter automatiquement l'utilisateur
+    return login(email, password);
   } catch (error) {
     console.error('Register error:', error);
     throw error;
@@ -44,29 +43,14 @@ export async function register(email: string, password: string, role: string) {
 
 export async function logout() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_AUTH_API}/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Erreur lors de la déconnexion');
-    }
-
-    // Après la déconnexion réussie côté serveur, supprimer le token local
-    localStorage.removeItem('token');
-    
-    const data = await response.json();
-    return data;
+    await signOut({ redirect: false });
   } catch (error) {
     console.error('Logout error:', error);
     throw error;
   }
 }
 
-export function isAuthenticated() {
-  const token = localStorage.getItem('token');
-  return !!token;
+export async function isAuthenticated() {
+  const session = await getSession();
+  return !!session;
 }

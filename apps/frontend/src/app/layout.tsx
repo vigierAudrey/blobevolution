@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import { ReactNode } from "react";
 import { AuthProvider } from "@/components/AuthProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Inter, Geist, Geist_Mono } from "next/font/google";
-import { useEffect } from "react";
+
 
 
 // Fontes personnalisées
