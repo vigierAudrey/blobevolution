@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuthContext } from '../context/AuthContext';
 
 const useLogout = () => {
     const { setAuth } = useAuthContext();
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const logout = useCallback(() => {
         // Clear authentication data
@@ -13,9 +13,9 @@ const useLogout = () => {
         // Optionally clear localStorage/sessionStorage
         localStorage.removeItem('authToken');
 
-        // Redirect to login page
-        navigate('/login');
-    }, [setAuth, navigate]);
+        // Redirect to login page␊
+        router.push('/login');
+    }, [setAuth, router]);
 
     return logout;
 };
