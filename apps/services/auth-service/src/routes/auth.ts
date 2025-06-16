@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User from '../models/user';
+import prisma from '../db';
 
 const router = Router();
 
@@ -20,16 +20,18 @@ router.post('/register', async (req: Request, res: Response) => {
       role?: 'rider' | 'professional' | 'admin';
     };
 
-    const existing = await User.findOne({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return res.status(400).json({ message: 'Email déjà utilisé' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      email,
-      passwordHash,
-      role: role ?? 'rider'
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role: role ?? 'rider'
+      }
     });
 
     return res.status(201).json({
@@ -47,7 +49,7 @@ router.post('/register', async (req: Request, res: Response) => {
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body as { email: string; password: string };
-    const user = await User.findOne({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(400).json({ message: 'Identifiants invalides' });
     }
@@ -95,8 +97,9 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id } = (req as any).user as { id: number; role: string };
-      const user = await User.findByPk(id, {
-        attributes: ['id','email','role']
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: { id: true, email: true, role: true }
       });
       if (!user) {
         return res.sendStatus(404);

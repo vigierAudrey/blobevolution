@@ -45,7 +45,7 @@ Structure du dépôt:
 
 Technologies & librairies Open Source
 
-Backend : Node.js 18 (LTS), Express, Sequelize & PostgreSQL, Prisma ORM
+Backend : Node.js 18 (LTS), Express, PostgreSQL, Prisma ORM
 
 Frontend : Next.js 14+, React 19, TypeScript, Tailwind CSS, shadcn/ui
 

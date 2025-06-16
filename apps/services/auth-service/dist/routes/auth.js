@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const user_1 = __importDefault(require("../models/user"));
+const db_1 = __importDefault(require("../db"));
 const router = (0, express_1.Router)();
 // simple healthcheck
 router.get('/ping', (_req, res) => {
@@ -17,15 +17,17 @@ router.post('/register', async (req, res) => {
     console.log('BODY →', req.body);
     try {
         const { email, password, role } = req.body;
-        const existing = await user_1.default.findOne({ where: { email } });
+        const existing = await db_1.default.user.findUnique({ where: { email } });
         if (existing) {
             return res.status(400).json({ message: 'Email déjà utilisé' });
         }
         const passwordHash = await bcrypt_1.default.hash(password, 10);
-        const user = await user_1.default.create({
-            email,
-            passwordHash,
-            role: role ?? 'rider'
+        const user = await db_1.default.user.create({
+            data: {
+                email,
+                passwordHash,
+                role: role ?? 'rider'
+            }
         });
         return res.status(201).json({
             message: 'Utilisateur créé avec succès',
@@ -41,7 +43,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await user_1.default.findOne({ where: { email } });
+        const user = await db_1.default.user.findUnique({ where: { email } });
         if (!user) {
             return res.status(400).json({ message: 'Identifiants invalides' });
         }
@@ -76,8 +78,9 @@ function authenticate(req, res, next) {
 router.get('/profile', authenticate, async (req, res) => {
     try {
         const { id } = req.user;
-        const user = await user_1.default.findByPk(id, {
-            attributes: ['id', 'email', 'role']
+        const user = await db_1.default.user.findUnique({
+            where: { id },
+            select: { id: true, email: true, role: true }
         });
         if (!user) {
             return res.sendStatus(404);
