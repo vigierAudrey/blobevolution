@@ -7,21 +7,19 @@ datasource db {
   url      = env("DATABASE_URL") // défini dans ton .env
 }
 
-/// Enum pour le rôle
 enum Role {
   rider
   professional
   admin
 }
 
-/// Modèle User
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
   passwordHash String
-  role         Role     @default(rider)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role      @default(rider)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   accounts     Account[]
 
   @@map("Users") // mappe ce modèle à la table “Users” existante
