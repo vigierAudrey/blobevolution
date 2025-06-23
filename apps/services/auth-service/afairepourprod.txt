@@ -32,7 +32,7 @@ Valider le rôle (enum « rider », « professional », « admin »)
 
 3. Base de données & migration
 
-🛠️ Migrations (umzug / sequelize-cli) au lieu de sync() en prod
+🛠️ Migrations (Prisma Migrate ou un outil de migration) au lieu de sync() en prod
 
 📈 Seeders pour données initiales (rôles, permissions)
 
@@ -84,7 +84,7 @@ Bonus :
 Rajout 30/04:
 # Auth-service → checklist production
 
-- [ ] Gestion des migrations SQL (Umzug ou Sequelize-CLI)
+- [ ] Gestion des migrations SQL (Prisma Migrate ou un autre outil)
 - [ ] Sécuriser les headers HTTP (helmet)
 - [ ] Limiter le nombre de requêtes (express-rate-limit)
 - [ ] Centraliser la validation des inputs (Joi / Zod)

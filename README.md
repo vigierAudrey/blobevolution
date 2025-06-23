@@ -81,7 +81,17 @@ Frontend : http://localhost:3000
 
 Auth : http://localhost:4001/auth/ping
 
-Gateway : http://localhost:80 (ou 8080)
+Gateway : http://localhost:80 (ou 8080)
+
+Variables d'environnement Google OAuth
+--------------------------------------
+Ajoutez ces clés à vos fichiers `.env` :
+
+```
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_CALLBACK_URL=http://localhost:4001/auth/google/callback
+SESSION_SECRET=un_secret_pour_express
 
 ⚙️ CI / CD
 

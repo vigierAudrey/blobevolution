@@ -1,7 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { body, validationResult } from 'express-validator';
 import prisma from '../db';
+import passport from '../googleStrategy';
 
 const router = Router();
 
@@ -11,14 +13,21 @@ router.get('/ping', (_req, res) => {
 });
 
 // register
-router.post('/register', async (req: Request, res: Response) => {
-  console.log('BODY →', req.body);
-  try {
-    const { email, password, role } = req.body as {
-      email: string;
-      password: string;
-      role?: 'rider' | 'professional' | 'admin';
-    };
+router.post(
+  '/register',
+  [body('email').isEmail(), body('password').isLength({ min: 6 })],
+  async (req: Request, res: Response) => {
+    console.log('BODY →', req.body);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const { email, password, role } = req.body as {
+        email: string;
+        password: string;
+        role?: 'rider' | 'professional' | 'admin';
+      };
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -46,7 +55,7 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 // login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {␊
   try {
     const { email, password } = req.body as { email: string; password: string };
     const user = await prisma.user.findUnique({ where: { email } });
@@ -71,6 +80,23 @@ router.post('/login', async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 });
+
+// Google OAuth2
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/' }),
+  (req: Request, res: Response) => {
+    const user = req.user as any;
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '1h' }
+    );
+    res.json({ token });
+  }
+);
+
 
 // middleware to protect routes
 function authenticate(req: Request, res: Response, next: NextFunction) {
