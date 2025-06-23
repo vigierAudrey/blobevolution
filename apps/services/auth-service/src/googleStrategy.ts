@@ -1,7 +1,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
 import prisma from './db';
-
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 passport.serializeUser((user: any, done) => done(null, user));
 passport.deserializeUser((obj: any, done) => done(null, obj));
 
@@ -14,7 +15,7 @@ passport.use(
     { clientID, clientSecret, callbackURL },
     async (accessToken: string, refreshToken: string, profile: Profile, done) => {
       try {
-        const existingAccount = await prisma.account.findUnique({
+        const account = await prisma.account.findUnique({
           where: {
             provider_providerAccountId: {
               provider: 'google',

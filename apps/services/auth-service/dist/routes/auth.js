@@ -6,17 +6,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const express_validator_1 = require("express-validator");
+const express_validator_1 = __importDefault(require("express-validator"));
 const db_1 = __importDefault(require("../db"));
+const googleStrategy_1 = __importDefault(require("../googleStrategy"));
 const router = (0, express_1.Router)();
+const { body, validationResult } = express_validator_1.default;
 // simple healthcheck
 router.get('/ping', (_req, res) => {
     res.send('pong');
 });
 // register
-router.post('/register', [(0, express_validator_1.body)('email').isEmail(), (0, express_validator_1.body)('password').isLength({ min: 6 })], async (req, res) => {
+router.post('/register', [body('email').isEmail(), body('password').isLength({ min: 6 })], async (req, res) => {
     console.log('BODY →', req.body);
-       const errors = (0, express_validator_1.validationResult)(req);
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
@@ -45,11 +47,7 @@ router.post('/register', [(0, express_validator_1.body)('email').isEmail(), (0, 
     }
 });
 // login
-router.post('/login', [(0, express_validator_1.body)('email').isEmail(), (0, express_validator_1.body)('password').notEmpty()], async (req, res) => {
-    const errors = (0, express_validator_1.validationResult)(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await db_1.default.user.findUnique({ where: { email } });
@@ -61,15 +59,19 @@ router.post('/login', [(0, express_validator_1.body)('email').isEmail(), (0, exp
             return res.status(400).json({ message: 'Identifiants invalides' });
         }
         const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        return res.json({
-            token,
-            user: { id: user.id, email: user.email, role: user.role }
-        });
+        return res.json({ token });
     }
     catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Erreur serveur', error: err.message });
     }
+});
+// Google OAuth2
+router.get('/google', googleStrategy_1.default.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/callback', googleStrategy_1.default.authenticate('google', { session: false, failureRedirect: '/' }), (req, res) => {
+    const user = req.user;
+    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token });
 });
 // middleware to protect routes
 function authenticate(req, res, next) {

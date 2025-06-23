@@ -1,11 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { body, validationResult } from 'express-validator';
+import validator from 'express-validator';
 import prisma from '../db';
 import passport from '../googleStrategy';
 
 const router = Router();
+const { body, validationResult } = validator;
 
 // simple healthcheck
 router.get('/ping', (_req, res) => {
